@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:excel/excel.dart';
@@ -8,12 +9,24 @@ import '../models/models.dart';
 import '../utils/jalali_utils.dart';
 
 class ReportService {
+  static Future<pw.Document> _createDocument() async {
+    final regularFontData = await rootBundle.load('assets/fonts/Amiri-Regular.ttf');
+    final boldFontData = await rootBundle.load('assets/fonts/Amiri-Bold.ttf');
+
+    return pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: pw.Font.ttf(regularFontData),
+        bold: pw.Font.ttf(boldFontData),
+      ),
+    );
+  }
+
   static Future<void> generateDailyReportPdf({
     required DateTime date,
     required List<AttendanceRecord> records,
     required List<Worker> workers,
   }) async {
-    final pdf = pw.Document();
+    final pdf = await _createDocument();
     final jalaliDate = JalaliUtils.formatDate(date, withWeekDay: true);
 
     final workerMap = {for (var w in workers) w.id: w};
@@ -64,7 +77,7 @@ class ReportService {
     required List<Worker> workers,
     required List<AttendanceRecord> records,
   }) async {
-    final pdf = pw.Document();
+    final pdf = await _createDocument();
     final startJalali = JalaliUtils.formatDate(startDate);
     final endJalali = JalaliUtils.formatDate(endDate);
 
@@ -112,7 +125,7 @@ class ReportService {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    final pdf = pw.Document();
+    final pdf = await _createDocument();
     final startJalali = JalaliUtils.formatDate(startDate);
     final endJalali = JalaliUtils.formatDate(endDate);
 
