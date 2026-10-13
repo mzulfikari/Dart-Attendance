@@ -15,7 +15,7 @@
 
 - **Flutter 3.x** + Dart
 - **SQLite** (sqflite) برای دیتابیس محلی
-- **Jalali Calendar** (jalaali_date) برای تقویم شمسی
+- **Jalali Calendar** (`shamsi_date`) برای تقویم شمسی
 - **PDF** (pdf, printing) برای گزارش PDF
 - **Excel** (excel) برای خروجی اکسل
 - **Share Plus** برای اشتراک‌گذاری فایل‌ها
