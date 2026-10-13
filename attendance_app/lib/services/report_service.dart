@@ -172,7 +172,7 @@ class ReportService {
       ];
     }).toList();
 
-    return pw.Table.fromTextArray(
+    return pw.TableHelper.fromTextArray(
       headers: headers,
       data: data,
       headerStyle: pw.TextStyle(
@@ -232,7 +232,7 @@ class ReportService {
       return row;
     }).toList();
 
-    return pw.Table.fromTextArray(
+    return pw.TableHelper.fromTextArray(
         headers: headers,
         data: data,
         headerStyle: pw.TextStyle(
@@ -278,7 +278,7 @@ class ReportService {
       r.note ?? '-',
     ]).toList();
 
-    return pw.Table.fromTextArray(
+    return pw.TableHelper.fromTextArray(
       headers: headers,
       data: data,
       headerStyle: pw.TextStyle(
