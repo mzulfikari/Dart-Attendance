@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -122,17 +121,19 @@ class DatabaseService {
           dayStart.millisecondsSinceEpoch,
           nextDay.millisecondsSinceEpoch,
         ],
+        orderBy: 'date ASC',
         limit: 1,
       );
 
       if (existing.isNotEmpty) {
         final id = existing.first['id'] as int;
-        return txn.update(
+        await txn.update(
           'attendance_records',
           normalized.copyWith(id: id).toMap(),
           where: 'id = ?',
           whereArgs: [id],
         );
+        return id;
       }
 
       return txn.insert('attendance_records', normalized.toMap());
