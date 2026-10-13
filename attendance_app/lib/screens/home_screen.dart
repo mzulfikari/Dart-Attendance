@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/database_service.dart';
-import '../services/report_service.dart';
 import '../utils/jalali_utils.dart';
 import 'workers_screen.dart';
 import 'attendance_screen.dart';
@@ -16,38 +15,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  DateTime _selectedDate = DateTime.now();
-  List<AttendanceRecord> _todayRecords = [];
-  Map<String, int> _todayStats = {};
-  int _totalWorkers = 0;
 
-  final List<Widget> _screens = [
-    const _HomeTab(),
+  late final List<Widget> _screens = [
+    _HomeTab(onViewAll: () => _onTabChanged(2)),
     const WorkersScreen(),
     const AttendanceScreen(),
     const ReportsScreen(),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    final workers = await DatabaseService.instance.getAllWorkers();
-    final records = await DatabaseService.instance.getAttendanceByDate(_selectedDate);
-    final stats = await DatabaseService.instance.getAttendanceStats(
-      JalaliUtils.startOfDay(_selectedDate),
-      JalaliUtils.endOfDay(_selectedDate),
-    );
-
-    setState(() {
-      _totalWorkers = workers.length;
-      _todayRecords = records;
-      _todayStats = stats;
-    });
-  }
 
   void _onTabChanged(int index) {
     setState(() {
@@ -93,7 +67,9 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _HomeTab extends StatefulWidget {
-  const _HomeTab();
+  final VoidCallback onViewAll;
+
+  const _HomeTab({required this.onViewAll});
 
   @override
   State<_HomeTab> createState() => _HomeTabState();
@@ -113,20 +89,29 @@ class _HomeTabState extends State<_HomeTab> {
   }
 
   Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    final workers = await DatabaseService.instance.getAllWorkers();
-    final records = await DatabaseService.instance.getAttendanceByDate(_selectedDate);
-    final stats = await DatabaseService.instance.getAttendanceStats(
-      JalaliUtils.startOfDay(_selectedDate),
-      JalaliUtils.endOfDay(_selectedDate),
-    );
+    if (mounted) setState(() => _isLoading = true);
+    try {
+      final workers = await DatabaseService.instance.getAllWorkers();
+      final records = await DatabaseService.instance.getAttendanceByDate(_selectedDate);
+      final stats = await DatabaseService.instance.getAttendanceStats(
+        JalaliUtils.startOfDay(_selectedDate),
+        JalaliUtils.endOfDay(_selectedDate),
+      );
 
-    setState(() {
-      _totalWorkers = workers.length;
-      _todayRecords = records;
-      _todayStats = stats;
-      _isLoading = false;
-    });
+      if (!mounted) return;
+      setState(() {
+        _totalWorkers = workers.length;
+        _todayRecords = records;
+        _todayStats = stats;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا در بارگذاری داشبورد: $error')),
+      );
+    }
   }
 
   Future<void> _pickDate() async {
@@ -140,10 +125,9 @@ class _HomeTabState extends State<_HomeTab> {
         initialDay: jalali.day,
       ),
     );
-    if (picked != null) {
-      setState(() => _selectedDate = picked);
-      _loadData();
-    }
+    if (!mounted || picked == null) return;
+    setState(() => _selectedDate = picked);
+    await _loadData();
   }
 
   @override
@@ -316,9 +300,7 @@ class _HomeTabState extends State<_HomeTab> {
               ),
             ),
             TextButton.icon(
-              onPressed: () {
-                // Navigate to attendance screen
-              },
+              onPressed: widget.onViewAll,
               icon: const Icon(Icons.arrow_forward, size: 18),
               label: const Text('مشاهده همه'),
             ),
@@ -425,6 +407,28 @@ class _JalaliDatePickerState extends State<_JalaliDatePicker> {
     _day = widget.initialDay;
   }
 
+  void _changeMonth(int offset) {
+    setState(() {
+      if (offset < 0) {
+        if (_month == 1) {
+          _month = 12;
+          _year--;
+        } else {
+          _month--;
+        }
+      } else {
+        if (_month == 12) {
+          _month = 1;
+          _year++;
+        } else {
+          _month++;
+        }
+      }
+      final lastDay = JalaliUtils.getDaysInJalaliMonth(_year, _month);
+      if (_day > lastDay) _day = lastDay;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final daysInMonth = JalaliUtils.getDaysInJalaliMonth(_year, _month);
@@ -439,10 +443,7 @@ class _JalaliDatePickerState extends State<_JalaliDatePicker> {
             children: [
               IconButton(
                 icon: const Icon(Icons.chevron_right),
-                onPressed: () => setState(() {
-                  _month = _month > 1 ? _month - 1 : 12;
-                  if (_month == 12) _year--;
-                }),
+                onPressed: () => _changeMonth(-1),
               ),
               Text(
                 '${JalaliUtils.monthName(_month)} ${JalaliUtils.toPersianDigitsInt(_year)}',
@@ -450,10 +451,7 @@ class _JalaliDatePickerState extends State<_JalaliDatePicker> {
               ),
               IconButton(
                 icon: const Icon(Icons.chevron_left),
-                onPressed: () => setState(() {
-                  _month = _month < 12 ? _month + 1 : 1;
-                  if (_month == 1) _year++;
-                }),
+                onPressed: () => _changeMonth(1),
               ),
             ],
           ),

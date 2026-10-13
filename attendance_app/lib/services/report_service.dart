@@ -1,34 +1,45 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:excel/excel.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../utils/jalali_utils.dart';
 
 class ReportService {
+  static Future<pw.Document> _createDocument() async {
+    final regularFontData = await rootBundle.load('assets/fonts/Amiri-Regular.ttf');
+    final boldFontData = await rootBundle.load('assets/fonts/Amiri-Bold.ttf');
+
+    return pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: pw.Font.ttf(regularFontData),
+        bold: pw.Font.ttf(boldFontData),
+      ),
+    );
+  }
+
   static Future<void> generateDailyReportPdf({
     required DateTime date,
     required List<AttendanceRecord> records,
     required List<Worker> workers,
   }) async {
-    final pdf = pw.Document();
+    final pdf = await _createDocument();
     final jalaliDate = JalaliUtils.formatDate(date, withWeekDay: true);
 
     final workerMap = {for (var w in workers) w.id: w};
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageTheme: pw.PageTheme(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.all(24),
           textDirection: pw.TextDirection.rtl,
         ),
-        build: (context) => pw.Column(
+        build: (context) => [
+          pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Center(
@@ -55,6 +66,7 @@ class ReportService {
             _buildSummary(records),
           ],
         ),
+        ],
       ),
     );
 
@@ -67,18 +79,19 @@ class ReportService {
     required List<Worker> workers,
     required List<AttendanceRecord> records,
   }) async {
-    final pdf = pw.Document();
+    final pdf = await _createDocument();
     final startJalali = JalaliUtils.formatDate(startDate);
     final endJalali = JalaliUtils.formatDate(endDate);
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageTheme: pw.PageTheme(
           pageFormat: PdfPageFormat.a4.landscape,
           margin: const pw.EdgeInsets.all(16),
           textDirection: pw.TextDirection.rtl,
         ),
-        build: (context) => pw.Column(
+        build: (context) => [
+          pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Center(
@@ -103,6 +116,7 @@ class ReportService {
             _buildMonthlyTable(workers, records, startDate, endDate),
           ],
         ),
+        ],
       ),
     );
 
@@ -115,18 +129,19 @@ class ReportService {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    final pdf = pw.Document();
+    final pdf = await _createDocument();
     final startJalali = JalaliUtils.formatDate(startDate);
     final endJalali = JalaliUtils.formatDate(endDate);
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageTheme: pw.PageTheme(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.all(24),
           textDirection: pw.TextDirection.rtl,
         ),
-        build: (context) => pw.Column(
+        build: (context) => [
+          pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Center(
@@ -153,6 +168,7 @@ class ReportService {
             _buildWorkerSummary(records),
           ],
         ),
+        ],
       ),
     );
 
@@ -175,7 +191,7 @@ class ReportService {
       ];
     }).toList();
 
-    return pw.Table.fromTextArray(
+    return pw.TableHelper.fromTextArray(
       headers: headers,
       data: data,
       headerStyle: pw.TextStyle(
@@ -235,7 +251,7 @@ class ReportService {
       return row;
     }).toList();
 
-    return pw.Table.fromTextArray(
+    return pw.TableHelper.fromTextArray(
         headers: headers,
         data: data,
         headerStyle: pw.TextStyle(
@@ -281,7 +297,7 @@ class ReportService {
       r.note ?? '-',
     ]).toList();
 
-    return pw.Table.fromTextArray(
+    return pw.TableHelper.fromTextArray(
       headers: headers,
       data: data,
       headerStyle: pw.TextStyle(
@@ -422,7 +438,6 @@ class ReportService {
     final excel = Excel.createExcel();
     final sheet = excel['گزارش حضور و غیاب'];
 
-    final workerMap = {for (var w in workers) w.id: w};
     final recordMap = <String, AttendanceRecord>{};
     for (final r in records) {
       final key = '${r.workerId}_${JalaliUtils.formatShortDate(r.date)}';

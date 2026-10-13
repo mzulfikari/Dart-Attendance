@@ -23,20 +23,28 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    final workers = await DatabaseService.instance.getAllWorkers();
-    final records = await DatabaseService.instance.getAttendanceByDate(_selectedDate);
+    if (mounted) setState(() => _isLoading = true);
+    try {
+      final workers = await DatabaseService.instance.getAllWorkers();
+      final records = await DatabaseService.instance.getAttendanceByDate(_selectedDate);
+      final map = <int, AttendanceRecord>{};
+      for (final record in records) {
+        map[record.workerId] = record;
+      }
 
-    final map = <int, AttendanceRecord>{};
-    for (final r in records) {
-      map[r.workerId] = r;
+      if (!mounted) return;
+      setState(() {
+        _workers = workers;
+        _attendanceMap = map;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا در بارگذاری حضور و غیاب: $error')),
+      );
     }
-
-    setState(() {
-      _workers = workers;
-      _attendanceMap = map;
-      _isLoading = false;
-    });
   }
 
   Future<void> _pickDate() async {
@@ -50,10 +58,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         initialDay: jalali.day,
       ),
     );
-    if (picked != null) {
-      setState(() => _selectedDate = picked);
-      _loadData();
-    }
+    if (!mounted || picked == null) return;
+    setState(() => _selectedDate = picked);
+    await _loadData();
   }
 
   Future<void> _saveAttendance(Worker worker, AttendanceStatus status,
@@ -62,7 +69,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     final record = AttendanceRecord(
       id: existing?.id,
       workerId: worker.id!,
-      date: JalaliUtils.startOfDay(_selectedDate),
+      date: existing?.date ?? JalaliUtils.startOfDay(_selectedDate),
       status: status,
       note: note,
       checkInTime: checkIn,
@@ -71,12 +78,19 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       createdAt: existing?.createdAt ?? DateTime.now(),
     );
 
-    if (existing != null) {
-      await DatabaseService.instance.updateAttendance(record);
-    } else {
-      await DatabaseService.instance.insertAttendance(record);
+    try {
+      if (existing != null) {
+        await DatabaseService.instance.updateAttendance(record);
+      } else {
+        await DatabaseService.instance.insertAttendance(record);
+      }
+      await _loadData();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا در ذخیره حضور و غیاب: $error')),
+      );
     }
-    _loadData();
   }
 
   Future<void> _showAttendanceDialog(Worker worker) async {
@@ -218,6 +232,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         ),
       ),
     );
+    noteController.dispose();
+    locationController.dispose();
   }
 
   @override

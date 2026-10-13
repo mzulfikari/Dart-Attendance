@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/database_service.dart';
-import '../utils/jalali_utils.dart';
 import 'worker_form_screen.dart';
 import 'worker_detail_screen.dart';
 
@@ -32,13 +31,22 @@ class _WorkersScreenState extends State<WorkersScreen> {
   }
 
   Future<void> _loadWorkers() async {
-    setState(() => _isLoading = true);
-    final workers = await DatabaseService.instance.getAllWorkers(activeOnly: false);
-    setState(() {
-      _workers = workers;
-      _filteredWorkers = workers;
-      _isLoading = false;
-    });
+    if (mounted) setState(() => _isLoading = true);
+    try {
+      final workers = await DatabaseService.instance.getAllWorkers(activeOnly: false);
+      if (!mounted) return;
+      setState(() {
+        _workers = workers;
+        _filteredWorkers = workers;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا در بارگذاری نیروها: $error')),
+      );
+    }
   }
 
   void _filterWorkers() {
@@ -53,9 +61,16 @@ class _WorkersScreenState extends State<WorkersScreen> {
   }
 
   Future<void> _toggleActive(Worker worker) async {
-    final updated = worker.copyWith(isActive: !worker.isActive);
-    await DatabaseService.instance.updateWorker(updated);
-    _loadWorkers();
+    try {
+      final updated = worker.copyWith(isActive: !worker.isActive);
+      await DatabaseService.instance.updateWorker(updated);
+      await _loadWorkers();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا در تغییر وضعیت نیرو: $error')),
+      );
+    }
   }
 
   Future<void> _deleteWorker(Worker worker) async {
@@ -78,9 +93,15 @@ class _WorkersScreenState extends State<WorkersScreen> {
       ),
     );
 
-    if (confirm == true) {
+    if (!mounted || confirm != true) return;
+    try {
       await DatabaseService.instance.deleteWorker(worker.id!);
-      _loadWorkers();
+      await _loadWorkers();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا در حذف نیرو: $error')),
+      );
     }
   }
 
