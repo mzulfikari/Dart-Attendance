@@ -22,7 +22,8 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace "com.electrical.attendance"
     compileSdkVersion flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+    // Keep native plugins on the NDK version required by the resolved Flutter plugins.
+    ndkVersion "25.1.8937393"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
