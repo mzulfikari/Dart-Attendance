@@ -69,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
 class _HomeTab extends StatefulWidget {
   final VoidCallback onViewAll;
 
-  const _HomeTab({super.key, required this.onViewAll});
+  const _HomeTab({required this.onViewAll});
 
   @override
   State<_HomeTab> createState() => _HomeTabState();
