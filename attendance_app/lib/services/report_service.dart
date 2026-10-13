@@ -207,8 +207,9 @@ class ReportService {
     DateTime endDate,
   ) {
     final days = <DateTime>[];
-    var current = JalaliUtils.startOfMonth(startDate);
-    while (current.isBefore(endDate) || current.isAtSameMomentAs(endDate)) {
+    var current = DateTime(startDate.year, startDate.month, startDate.day);
+    final lastDay = DateTime(endDate.year, endDate.month, endDate.day);
+    while (!current.isAfter(lastDay)) {
       days.add(current);
       current = current.add(const Duration(days: 1));
     }
@@ -229,7 +230,7 @@ class ReportService {
       for (final d in days) {
         final key = '${w.id}_${JalaliUtils.formatShortDate(d)}';
         final record = recordMap[key];
-        row.add(record?.status.label[0] ?? '-');
+        row.add(record == null ? '-' : _statusAbbreviation(record.status));
       }
       return row;
     }).toList();
@@ -375,6 +376,21 @@ class ReportService {
     );
   }
 
+  static String _statusAbbreviation(AttendanceStatus status) {
+    switch (status) {
+      case AttendanceStatus.present:
+        return 'ح';
+      case AttendanceStatus.absent:
+        return 'غ';
+      case AttendanceStatus.late:
+        return 'ت';
+      case AttendanceStatus.leave:
+        return 'ر';
+      case AttendanceStatus.mission:
+        return 'م';
+    }
+  }
+
   static PdfColor _statusToPdfColor(AttendanceStatus status) {
     switch (status) {
       case AttendanceStatus.present:
@@ -414,8 +430,9 @@ class ReportService {
     }
 
     final days = <DateTime>[];
-    var current = JalaliUtils.startOfMonth(startDate);
-    while (current.isBefore(endDate) || current.isAtSameMomentAs(endDate)) {
+    var current = DateTime(startDate.year, startDate.month, startDate.day);
+    final lastDay = DateTime(endDate.year, endDate.month, endDate.day);
+    while (!current.isAfter(lastDay)) {
       days.add(current);
       current = current.add(const Duration(days: 1));
     }
@@ -432,7 +449,7 @@ class ReportService {
       for (final d in days) {
         final key = '${w.id}_${JalaliUtils.formatShortDate(d)}';
         final record = recordMap[key];
-        row.add(record?.status.label[0] ?? '-');
+        row.add(record == null ? '-' : _statusAbbreviation(record.status));
       }
       sheet.appendRow(row);
     }

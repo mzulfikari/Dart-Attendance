@@ -348,7 +348,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundColor: record?.status.color.withValues(alpha: 0.1) ??
+                backgroundColor: record?.status.color.withOpacity(0.1) ??
                     Theme.of(context).colorScheme.primaryContainer,
                 child: Icon(
                   record?.status.icon ?? Icons.help_outline,
@@ -379,7 +379,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: record.status.color.withValues(alpha: 0.1),
+                    color: record.status.color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(

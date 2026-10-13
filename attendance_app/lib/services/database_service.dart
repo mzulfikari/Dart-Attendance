@@ -22,6 +22,9 @@ class DatabaseService {
     return await openDatabase(
       path,
       version: 1,
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
       onCreate: _onCreate,
     );
   }
@@ -105,11 +108,35 @@ class DatabaseService {
 
   Future<int> insertAttendance(AttendanceRecord record) async {
     final db = await database;
-    return await db.insert(
-      'attendance_records',
-      record.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    final dayStart = DateTime(record.date.year, record.date.month, record.date.day);
+    final nextDay = dayStart.add(const Duration(days: 1));
+    final normalized = record.copyWith(date: dayStart);
+
+    return db.transaction((txn) async {
+      final existing = await txn.query(
+        'attendance_records',
+        columns: ['id'],
+        where: 'worker_id = ? AND date >= ? AND date < ?',
+        whereArgs: [
+          record.workerId,
+          dayStart.millisecondsSinceEpoch,
+          nextDay.millisecondsSinceEpoch,
+        ],
+        limit: 1,
+      );
+
+      if (existing.isNotEmpty) {
+        final id = existing.first['id'] as int;
+        return txn.update(
+          'attendance_records',
+          normalized.copyWith(id: id).toMap(),
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+      }
+
+      return txn.insert('attendance_records', normalized.toMap());
+    });
   }
 
   Future<List<AttendanceRecord>> getAttendanceByDate(DateTime date) async {
@@ -141,8 +168,10 @@ class DatabaseService {
     int? workerId,
   }) async {
     final db = await database;
-    String where = 'date >= ? AND date <= ?';
-    List<dynamic> args = [start.millisecondsSinceEpoch, end.millisecondsSinceEpoch];
+    final startOfDay = DateTime(start.year, start.month, start.day);
+    final endExclusive = DateTime(end.year, end.month, end.day).add(const Duration(days: 1));
+    String where = 'date >= ? AND date < ?';
+    List<dynamic> args = [startOfDay.millisecondsSinceEpoch, endExclusive.millisecondsSinceEpoch];
     if (workerId != null) {
       where += ' AND worker_id = ?';
       args.add(workerId);
@@ -189,9 +218,12 @@ class DatabaseService {
     final maps = await db.rawQuery('''
       SELECT status, COUNT(*) as count
       FROM attendance_records
-      WHERE date >= ? AND date <= ?
+      WHERE date >= ? AND date < ?
       GROUP BY status
-    ''', [start.millisecondsSinceEpoch, end.millisecondsSinceEpoch]);
+    ''', [
+      DateTime(start.year, start.month, start.day).millisecondsSinceEpoch,
+      DateTime(end.year, end.month, end.day).add(const Duration(days: 1)).millisecondsSinceEpoch,
+    ]);
 
     final stats = <String, int>{};
     for (var map in maps) {
@@ -213,11 +245,14 @@ class DatabaseService {
              SUM(CASE WHEN a.status = 4 THEN 1 ELSE 0 END) as mission_count
       FROM workers w
       LEFT JOIN attendance_records a ON w.id = a.worker_id
-        AND a.date >= ? AND a.date <= ?
+        AND a.date >= ? AND a.date < ?
       WHERE w.is_active = 1
       GROUP BY w.id
       ORDER BY w.name
-    ''', [start.millisecondsSinceEpoch, end.millisecondsSinceEpoch]);
+    ''', [
+      DateTime(start.year, start.month, start.day).millisecondsSinceEpoch,
+      DateTime(end.year, end.month, end.day).add(const Duration(days: 1)).millisecondsSinceEpoch,
+    ]);
   }
 
   Future<void> init() async {
