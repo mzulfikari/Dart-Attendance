@@ -1,12 +1,9 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:excel/excel.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../utils/jalali_utils.dart';
 
@@ -422,7 +419,6 @@ class ReportService {
     final excel = Excel.createExcel();
     final sheet = excel['گزارش حضور و غیاب'];
 
-    final workerMap = {for (var w in workers) w.id: w};
     final recordMap = <String, AttendanceRecord>{};
     for (final r in records) {
       final key = '${r.workerId}_${JalaliUtils.formatShortDate(r.date)}';
