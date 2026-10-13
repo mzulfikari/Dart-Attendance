@@ -32,13 +32,14 @@ class ReportService {
     final workerMap = {for (var w in workers) w.id: w};
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageTheme: pw.PageTheme(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.all(24),
           textDirection: pw.TextDirection.rtl,
         ),
-        build: (context) => pw.Column(
+        build: (context) => [
+          pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Center(
@@ -65,6 +66,7 @@ class ReportService {
             _buildSummary(records),
           ],
         ),
+        ],
       ),
     );
 
@@ -82,13 +84,14 @@ class ReportService {
     final endJalali = JalaliUtils.formatDate(endDate);
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageTheme: pw.PageTheme(
           pageFormat: PdfPageFormat.a4.landscape,
           margin: const pw.EdgeInsets.all(16),
           textDirection: pw.TextDirection.rtl,
         ),
-        build: (context) => pw.Column(
+        build: (context) => [
+          pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Center(
@@ -113,6 +116,7 @@ class ReportService {
             _buildMonthlyTable(workers, records, startDate, endDate),
           ],
         ),
+        ],
       ),
     );
 
@@ -130,13 +134,14 @@ class ReportService {
     final endJalali = JalaliUtils.formatDate(endDate);
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageTheme: pw.PageTheme(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.all(24),
           textDirection: pw.TextDirection.rtl,
         ),
-        build: (context) => pw.Column(
+        build: (context) => [
+          pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Center(
@@ -163,6 +168,7 @@ class ReportService {
             _buildWorkerSummary(records),
           ],
         ),
+        ],
       ),
     );
 
