@@ -58,6 +58,17 @@ class JalaliUtils {
     return jalali.toDateTime();
   }
 
+  static DateTime fromJalaliParts(int year, int month, int day) {
+    return toGregorian(Jalali(year, month, day));
+  }
+
+  static String monthName(int month) {
+    if (month < 1 || month > 12) {
+      throw RangeError.range(month, 1, 12, 'month');
+    }
+    return _persianMonths[month - 1];
+  }
+
   static String formatDate(DateTime date, {bool withWeekDay = false}) {
     final jalali = toJalali(date);
     final monthName = _persianMonths[jalali.month - 1];
