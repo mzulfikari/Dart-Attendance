@@ -24,7 +24,7 @@ git push -u origin main
 2. تب **Actions** را بزنید
 3. workflow "Build Android APK" در حال اجرا است
 4. پس از کامل شدن (۳-۵ دقیقه):
-   - **Artifacts** → `release-apks` را دانلود کنید
+   - **Artifacts** → `attendance-apk` را دانلود کنید
    - یا اگر tag زده‌اید، در **Releases** فایل APK هست
 
 ## ۳. برای هر آپدیت خودکار APK بگیرید
