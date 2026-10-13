@@ -75,7 +75,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
+  bool _validateDateRange() {
+    if (!_startDate.isAfter(_endDate)) return true;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('تاریخ شروع نباید بعد از تاریخ پایان باشد')),
+    );
+    return false;
+  }
+
   Future<void> _generateMonthlyReport() async {
+    if (!_validateDateRange()) return;
     setState(() => _isLoading = true);
     try {
       final records = await DatabaseService.instance.getAttendanceRange(_startDate, _endDate);
@@ -91,6 +100,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Future<void> _generateExcelReport() async {
+    if (!_validateDateRange()) return;
     setState(() => _isLoading = true);
     try {
       final records = await DatabaseService.instance.getAttendanceRange(_startDate, _endDate);
@@ -106,6 +116,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Future<void> _generateWorkerReport(Worker worker) async {
+    if (!_validateDateRange()) return;
     setState(() => _isLoading = true);
     try {
       final records = await DatabaseService.instance.getAttendanceByWorker(worker.id!);
