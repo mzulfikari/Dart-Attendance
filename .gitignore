@@ -1,1 +1,10 @@
 Flutter-Attendance/.git-backup/
+
+# Flutter / Dart
+**/.dart_tool/
+**/build/
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+**/android/app/*.jks
+**/android/app/*.keystore

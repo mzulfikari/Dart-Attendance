@@ -11,9 +11,6 @@ if (flutterRoot == null) {
     throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
 
-def flutterPluginRegistrant = new File(flutterRoot + '/.flutter-plugin-registrant')
-if (!flutterPluginRegistrant.exists()) {
-    throw new GradleException("Flutter plugin registrant not found.")
-}
-
-apply from: flutterPluginRegistrant.toString()
+// Use Flutter's standard plugin loader. The SDK-root .flutter-plugin-registrant
+// file is not a supported replacement for the Android Gradle plugin loader.
+apply from: "$flutterRoot/packages/flutter_tools/gradle/app_plugin_loader.gradle"
