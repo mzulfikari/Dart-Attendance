@@ -452,7 +452,7 @@ class _JalaliDatePickerState extends State<_JalaliDatePicker> {
                 }),
               ),
               Text(
-                '${JalaliUtils._persianMonths[_month - 1]} ${JalaliUtils.toPersianDigitsInt(_year)}',
+                '${JalaliUtils.monthName(_month)} ${JalaliUtils.toPersianDigitsInt(_year)}',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               IconButton(
@@ -514,9 +514,7 @@ class _JalaliDatePickerState extends State<_JalaliDatePicker> {
               Expanded(
                 child: FilledButton(
                   onPressed: () {
-                    final gregorian = JalaliUtils.toGregorian(
-                      JalaliDateTime(_year, _month, _day),
-                    );
+                    final gregorian = JalaliUtils.fromJalaliParts(_year, _month, _day);
                     Navigator.pop(context, gregorian);
                   },
                   child: const Text('تأیید'),
