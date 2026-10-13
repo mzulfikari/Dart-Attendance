@@ -207,8 +207,9 @@ class _WorkerDetailScreenState extends State<WorkerDetailScreen> {
       );
     }
 
-    return SliverList.separated(
+    return SliverPadding(
       padding: const EdgeInsets.all(16),
+      sliver: SliverList.separated(
       itemCount: _records.length,
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
@@ -216,7 +217,7 @@ class _WorkerDetailScreenState extends State<WorkerDetailScreen> {
         return Card(
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: record.status.color.withValues(alpha: 0.1),
+              backgroundColor: record.status.color.withOpacity(0.1),
               child: Icon(record.status.icon, color: record.status.color),
             ),
             title: Text(
@@ -259,7 +260,7 @@ class _WorkerDetailScreenState extends State<WorkerDetailScreen> {
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: record.status.color.withValues(alpha: 0.1),
+                color: record.status.color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -274,6 +275,7 @@ class _WorkerDetailScreenState extends State<WorkerDetailScreen> {
           ),
         );
       },
+      ),
     );
   }
 

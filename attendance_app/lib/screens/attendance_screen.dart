@@ -145,9 +145,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.login),
                         label: Text(checkInTime != null
-                            ? JalaliUtils.toPersianDigitsInt(checkInTime.hour).padLeft(2, '۰') +
+                            ? JalaliUtils.toPersianDigitsInt(checkInTime!.hour).padLeft(2, '۰') +
                                 ':' +
-                                JalaliUtils.toPersianDigitsInt(checkInTime.minute).padLeft(2, '۰')
+                                JalaliUtils.toPersianDigitsInt(checkInTime!.minute).padLeft(2, '۰')
                             : 'ساعت ورود'),
                         onPressed: () async {
                           final picked = await showTimePicker(
@@ -163,9 +163,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.logout),
                         label: Text(checkOutTime != null
-                            ? JalaliUtils.toPersianDigitsInt(checkOutTime.hour).padLeft(2, '۰') +
+                            ? JalaliUtils.toPersianDigitsInt(checkOutTime!.hour).padLeft(2, '۰') +
                                 ':' +
-                                JalaliUtils.toPersianDigitsInt(checkOutTime.minute).padLeft(2, '۰')
+                                JalaliUtils.toPersianDigitsInt(checkOutTime!.minute).padLeft(2, '۰')
                             : 'ساعت خروج'),
                         onPressed: () async {
                           final picked = await showTimePicker(

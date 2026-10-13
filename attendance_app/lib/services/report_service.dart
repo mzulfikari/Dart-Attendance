@@ -234,9 +234,7 @@ class ReportService {
       return row;
     }).toList();
 
-    return pw.SingleChildScrollView(
-      scrollDirection: pw.Axis.horizontal,
-      child: pw.Table.fromTextArray(
+    return pw.Table.fromTextArray(
         headers: headers,
         data: data,
         headerStyle: pw.TextStyle(
@@ -248,8 +246,7 @@ class ReportService {
         cellStyle: pw.TextStyle(fontSize: 7),
         cellAlignment: pw.Alignment.center,
         border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.3),
-      ),
-    );
+      );
   }
 
   static pw.Widget _buildWorkerInfo(Worker worker) {
@@ -424,18 +421,18 @@ class ReportService {
     }
 
     final headers = ['نام نیرو', 'کد ملی', 'سمت', ...days.map((d) => JalaliUtils.toPersianDigitsInt(JalaliUtils.toJalali(d).day))];
-    sheet.appendRow(headers.map((h) => TextCellValue(h)).toList());
+    sheet.appendRow(headers);
 
     for (final w in workers) {
-      final row = <CellValue>[
-        TextCellValue(w.name),
-        TextCellValue(w.nationalCode),
-        TextCellValue(w.role.label),
+      final row = <dynamic>[
+        w.name,
+        w.nationalCode,
+        w.role.label,
       ];
       for (final d in days) {
         final key = '${w.id}_${JalaliUtils.formatShortDate(d)}';
         final record = recordMap[key];
-        row.add(TextCellValue(record?.status.label[0] ?? '-'));
+        row.add(record?.status.label[0] ?? '-');
       }
       sheet.appendRow(row);
     }

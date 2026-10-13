@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../services/database_service.dart';
 import '../services/report_service.dart';
@@ -371,7 +370,7 @@ class _HomeTabState extends State<_HomeTab> {
         return Card(
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: record.status.color.withValues(alpha: 0.1),
+              backgroundColor: record.status.color.withOpacity(0.1),
               child: Icon(record.status.icon, color: record.status.color),
             ),
             title: Text(worker?.name ?? 'نیرو ناشناس'),
@@ -379,7 +378,7 @@ class _HomeTabState extends State<_HomeTab> {
             trailing: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: record.status.color.withValues(alpha: 0.1),
+                color: record.status.color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -446,7 +445,7 @@ class _JalaliDatePickerState extends State<_JalaliDatePicker> {
                 }),
               ),
               Text(
-                '${JalaliUtils._persianMonths[_month - 1]} ${JalaliUtils.toPersianDigitsInt(_year)}',
+                '${JalaliUtils.monthName(_month)} ${JalaliUtils.toPersianDigitsInt(_year)}',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               IconButton(
@@ -508,9 +507,7 @@ class _JalaliDatePickerState extends State<_JalaliDatePicker> {
               Expanded(
                 child: FilledButton(
                   onPressed: () {
-                    final gregorian = JalaliUtils.toGregorian(
-                      JalaliDateTime(_year, _month, _day),
-                    );
+                    final gregorian = JalaliUtils.fromJalaliParts(_year, _month, _day);
                     Navigator.pop(context, gregorian);
                   },
                   child: const Text('تأیید'),
