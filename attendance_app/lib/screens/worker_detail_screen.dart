@@ -24,11 +24,20 @@ class _WorkerDetailScreenState extends State<WorkerDetailScreen> {
   }
 
   Future<void> _loadRecords() async {
-    final records = await DatabaseService.instance.getAttendanceByWorker(widget.worker.id!);
-    setState(() {
-      _records = records;
-      _isLoading = false;
-    });
+    try {
+      final records = await DatabaseService.instance.getAttendanceByWorker(widget.worker.id!);
+      if (!mounted) return;
+      setState(() {
+        _records = records;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا در بارگذاری سوابق نیرو: $error')),
+      );
+    }
   }
 
   @override
