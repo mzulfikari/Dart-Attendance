@@ -25,22 +25,27 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Future<void> _loadWorkers() async {
-    final workers = await DatabaseService.instance.getAllWorkers();
-    setState(() => _workers = workers);
+    try {
+      final workers = await DatabaseService.instance.getAllWorkers();
+      if (mounted) setState(() => _workers = workers);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا در بارگذاری فهرست نیروها: $error')),
+      );
+    }
   }
 
   Future<void> _pickStartDate() async {
     final picked = await _showJalaliPicker(_startDate);
-    if (picked != null) {
-      setState(() => _startDate = picked);
-    }
+    if (!mounted || picked == null) return;
+    setState(() => _startDate = picked);
   }
 
   Future<void> _pickEndDate() async {
     final picked = await _showJalaliPicker(_endDate);
-    if (picked != null) {
-      setState(() => _endDate = picked);
-    }
+    if (!mounted || picked == null) return;
+    setState(() => _endDate = picked);
   }
 
   Future<DateTime?> _showJalaliPicker(DateTime initial) async {
@@ -503,6 +508,28 @@ class _JalaliDatePickerState extends State<_JalaliDatePicker> {
     _day = widget.initialDay;
   }
 
+  void _changeMonth(int offset) {
+    setState(() {
+      if (offset < 0) {
+        if (_month == 1) {
+          _month = 12;
+          _year--;
+        } else {
+          _month--;
+        }
+      } else {
+        if (_month == 12) {
+          _month = 1;
+          _year++;
+        } else {
+          _month++;
+        }
+      }
+      final lastDay = JalaliUtils.getDaysInJalaliMonth(_year, _month);
+      if (_day > lastDay) _day = lastDay;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final daysInMonth = JalaliUtils.getDaysInJalaliMonth(_year, _month);
@@ -517,10 +544,7 @@ class _JalaliDatePickerState extends State<_JalaliDatePicker> {
             children: [
               IconButton(
                 icon: const Icon(Icons.chevron_right),
-                onPressed: () => setState(() {
-                  _month = _month > 1 ? _month - 1 : 12;
-                  if (_month == 12) _year--;
-                }),
+                onPressed: () => _changeMonth(-1),
               ),
               Text(
                 '${JalaliUtils.monthName(_month)} ${JalaliUtils.toPersianDigitsInt(_year)}',
@@ -528,10 +552,7 @@ class _JalaliDatePickerState extends State<_JalaliDatePicker> {
               ),
               IconButton(
                 icon: const Icon(Icons.chevron_left),
-                onPressed: () => setState(() {
-                  _month = _month < 12 ? _month + 1 : 1;
-                  if (_month == 1) _year++;
-                }),
+                onPressed: () => _changeMonth(1),
               ),
             ],
           ),
